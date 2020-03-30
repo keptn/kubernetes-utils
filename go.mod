@@ -1,4 +1,4 @@
-module github.com/keptn/keptn/kubernetes-utils
+module github.com/keptn/kubernetes-utils
 
 go 1.13
 
