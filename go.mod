@@ -3,7 +3,7 @@ module github.com/keptn/kubernetes-utils
 go 1.13
 
 require (
-	github.com/Azure/go-autorest/autorest v0.10.0
+	github.com/Azure/go-autorest/autorest v0.2.0
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
@@ -27,13 +27,13 @@ require (
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/src-d/go-git.v4 v4.13.1 // indirect
-	k8s.io/api v0.18.0
-	k8s.io/apimachinery v0.18.0
+	k8s.io/api v0.0.0-20190313235455-40a48860b5ab
+	k8s.io/apimachinery v0.0.0-20190313205120-d7deff9243b1
 	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/helm v2.16.5+incompatible
+	k8s.io/helm v2.14.3+incompatible
 	k8s.io/klog v1.0.0 // indirect
-	k8s.io/utils v0.0.0-20200327001022-6496210b90e8 // indirect
-	sigs.k8s.io/yaml v1.2.0 // indirect
+	k8s.io/utils v0.0.0-20191010214722-8d271d903fe4 // indirect
+	sigs.k8s.io/yaml v1.1.0 // indirect
 )
 
 replace (
