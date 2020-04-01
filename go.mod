@@ -19,11 +19,13 @@ require (
 	github.com/kinbiko/jsonassert v1.0.1 // indirect
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
+	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	gopkg.in/src-d/go-git.v4 v4.13.1 // indirect
-	k8s.io/api v0.18.0
+	k8s.io/api v0.17.0
 	k8s.io/apimachinery v0.18.0
-	k8s.io/client-go v0.18.0
+	k8s.io/client-go v0.17.0
 	k8s.io/helm v2.14.3+incompatible
+	k8s.io/utils v0.0.0-20200324210504-a9aa75ae1b89 // indirect
 )
