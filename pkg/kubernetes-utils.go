@@ -2,6 +2,7 @@ package keptnkubeutils
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -113,12 +114,12 @@ func RestartPodsWithSelector(useInClusterConfig bool, namespace string, selector
 	if err != nil {
 		return err
 	}
-	pods, err := clientset.Pods(namespace).List(metav1.ListOptions{LabelSelector: selector})
+	pods, err := clientset.Pods(namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: selector})
 	if err != nil {
 		return err
 	}
 	for _, pod := range pods.Items {
-		if err := clientset.Pods(namespace).Delete(pod.Name, &metav1.DeleteOptions{}); err != nil {
+		if err := clientset.Pods(namespace).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{}); err != nil {
 			return err
 		}
 	}
@@ -134,7 +135,7 @@ func WaitForPodsWithSelector(useInClusterConfig bool, namespace string, selector
 	}
 
 	for i := 0; i < retries; i++ {
-		pods, err := clientset.Pods(namespace).List(metav1.ListOptions{LabelSelector: selector})
+		pods, err := clientset.Pods(namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: selector})
 		if err != nil {
 			return err
 		}
@@ -160,13 +161,13 @@ func ScaleDeployment(useInClusterConfig bool, deployment string, namespace strin
 	retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 		// Retrieve the latest version of Deployment before attempting update
 		// RetryOnConflict uses exponential backoff to avoid exhausting the apiserver
-		result, getErr := deploymentsClient.Get(deployment, metav1.GetOptions{})
+		result, getErr := deploymentsClient.Get(context.TODO(), deployment, metav1.GetOptions{})
 		if getErr != nil {
 			return fmt.Errorf("Failed to get latest version of Deployment: %v", getErr)
 		}
 
 		result.Spec.Replicas = int32Ptr(replicas)
-		_, updateErr := deploymentsClient.Update(result)
+		_, updateErr := deploymentsClient.Update(context.TODO(), result, metav1.UpdateOptions{})
 		return updateErr
 	})
 	return retryErr
@@ -217,7 +218,7 @@ func WaitForDeploymentsInNamespace(useInClusterConfig bool, namespace string) er
 	if err != nil {
 		return err
 	}
-	deps, err := clientset.AppsV1().Deployments(namespace).List(metav1.ListOptions{})
+	deps, err := clientset.AppsV1().Deployments(namespace).List(context.TODO(), metav1.ListOptions{})
 	for _, dep := range deps.Items {
 		if err := WaitForDeploymentToBeRolledOut(useInClusterConfig, dep.Name, namespace); err != nil {
 			return err
@@ -227,11 +228,11 @@ func WaitForDeploymentsInNamespace(useInClusterConfig bool, namespace string) er
 }
 
 func getDeployment(clientset *kubernetes.Clientset, namespace string, deploymentName string) (*appsv1.Deployment, error) {
-	dep, err := clientset.AppsV1().Deployments(namespace).Get(deploymentName, metav1.GetOptions{})
+	dep, err := clientset.AppsV1().Deployments(namespace).Get(context.TODO(), deploymentName, metav1.GetOptions{})
 	if err != nil &&
 		strings.Contains(err.Error(), "the object has been modified; please apply your changes to the latest version and try again") {
 		time.Sleep(10 * time.Second)
-		return clientset.AppsV1().Deployments(namespace).Get(deploymentName, metav1.GetOptions{})
+		return clientset.AppsV1().Deployments(namespace).Get(context.TODO(), deploymentName, metav1.GetOptions{})
 	}
 	return dep, nil
 }
@@ -275,7 +276,7 @@ func GetKeptnDomain(useInClusterConfig bool) (string, error) {
 		return "", err
 	}
 
-	cm, err := api.ConfigMaps("keptn").Get("keptn-domain", metav1.GetOptions{})
+	cm, err := api.ConfigMaps("keptn").Get(context.TODO(), "keptn-domain", metav1.GetOptions{})
 	if err != nil {
 		return "", err
 	}
@@ -290,7 +291,7 @@ func CreateNamespace(useInClusterConfig bool, namespace string) error {
 	if err != nil {
 		return err
 	}
-	_, err = clientset.CoreV1().Namespaces().Create(ns)
+	_, err = clientset.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
 	return err
 }
 
@@ -300,7 +301,7 @@ func ExistsNamespace(useInClusterConfig bool, namespace string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	_, err = clientset.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+	_, err = clientset.CoreV1().Namespaces().Get(context.TODO(), namespace, metav1.GetOptions{})
 	if err != nil {
 		if statusErr, ok := err.(*apierr.StatusError); ok && statusErr.ErrStatus.Reason == metav1.StatusReasonNotFound {
 			return false, nil
