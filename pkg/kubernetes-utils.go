@@ -12,13 +12,13 @@ import (
 	"strings"
 	"time"
 
+	"helm.sh/helm/v3/pkg/chart"
+	"helm.sh/helm/v3/pkg/chart/loader"
+	"helm.sh/helm/v3/pkg/chartutil"
+	"helm.sh/helm/v3/pkg/engine"
 	"k8s.io/client-go/kubernetes"
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/util/retry"
-	"k8s.io/helm/pkg/chartutil"
-	"k8s.io/helm/pkg/proto/hapi/chart"
-	"k8s.io/helm/pkg/renderutil"
-	"k8s.io/helm/pkg/timeconv"
 
 	appsv1 "k8s.io/api/apps/v1"
 	typesv1 "k8s.io/api/core/v1"
@@ -31,6 +31,8 @@ import (
 	_ "github.com/Azure/go-autorest/autorest"
 	"github.com/keptn/go-utils/pkg/api/models"
 	utils "github.com/keptn/go-utils/pkg/api/utils"
+
+	// Initialize all known client auth plugins.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -95,11 +97,7 @@ func GetFiles(workingPath string, suffixes ...string) ([]string, error) {
 func DoHelmUpgrade(project string, stage string) error {
 	helmChart := fmt.Sprintf("%s/helm-chart", project)
 	projectStage := fmt.Sprintf("%s-%s", project, stage)
-	_, err := ExecuteCommand("helm", []string{"init", "--client-only"})
-	if err != nil {
-		return err
-	}
-	_, err = ExecuteCommand("helm", []string{"dep", "update", helmChart})
+	_, err := ExecuteCommand("helm", []string{"dep", "update", helmChart})
 	if err != nil {
 		return err
 	}
@@ -370,12 +368,12 @@ func GetChart(project string, service string, stage string, chartName string, co
 
 // LoadChart converts a byte array into a Chart
 func LoadChart(data []byte) (*chart.Chart, error) {
-	return chartutil.LoadArchive(bytes.NewReader(data))
+	return loader.LoadArchive(bytes.NewReader(data))
 }
 
 // LoadChartFromPath loads a directory or Helm chart into a Chart
 func LoadChartFromPath(path string) (*chart.Chart, error) {
-	return chartutil.Load(path)
+	return loader.Load(path)
 }
 
 // PackageChart packages the chart and returns it
@@ -401,20 +399,13 @@ func PackageChart(ch *chart.Chart) ([]byte, error) {
 // GetRenderedDeployments returns all deployments contained in the provided chart
 func GetRenderedDeployments(ch *chart.Chart) ([]*appsv1.Deployment, error) {
 
-	renderOpts := renderutil.Options{
-		ReleaseOptions: chartutil.ReleaseOptions{
-			Name:      ch.Metadata.Name,
-			IsInstall: false,
-			IsUpgrade: false,
-			Time:      timeconv.Now(),
-		},
-	}
-	ch.Values.Raw += `
-keptn:
+	ch.Values["keptn"] = `
   project: prj,
+  stage: stg,
   service: svc,
   deployment: dpl`
-	renderedTemplates, err := renderutil.Render(ch, ch.Values, renderOpts)
+
+	renderedTemplates, err := engine.Render(ch, ch.Values)
 	if err != nil {
 		return nil, err
 	}
@@ -446,20 +437,12 @@ keptn:
 // GetRenderedServices returns all services contained in the provided chart
 func GetRenderedServices(ch *chart.Chart) ([]*typesv1.Service, error) {
 
-	renderOpts := renderutil.Options{
-		ReleaseOptions: chartutil.ReleaseOptions{
-			Name:      ch.Metadata.Name,
-			IsInstall: false,
-			IsUpgrade: false,
-			Time:      timeconv.Now(),
-		},
-	}
-	ch.Values.Raw += `
-keptn:
+	ch.Values["keptn"] = `
   project: prj,
+  stage: stg,
   service: svc,
   deployment: dpl`
-	renderedTemplates, err := renderutil.Render(ch, ch.Values, renderOpts)
+	renderedTemplates, err := engine.Render(ch, ch.Values)
 	if err != nil {
 		return nil, err
 	}
