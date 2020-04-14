@@ -399,13 +399,7 @@ func PackageChart(ch *chart.Chart) ([]byte, error) {
 // GetRenderedDeployments returns all deployments contained in the provided chart
 func GetRenderedDeployments(ch *chart.Chart) ([]*appsv1.Deployment, error) {
 
-	ch.Values["keptn"] = `
-  project: prj,
-  stage: stg,
-  service: svc,
-  deployment: dpl`
-
-	renderedTemplates, err := engine.Render(ch, ch.Values)
+	renderedTemplates, err := renderTemplatesWithKeptnValues(ch)
 	if err != nil {
 		return nil, err
 	}
@@ -437,12 +431,7 @@ func GetRenderedDeployments(ch *chart.Chart) ([]*appsv1.Deployment, error) {
 // GetRenderedServices returns all services contained in the provided chart
 func GetRenderedServices(ch *chart.Chart) ([]*typesv1.Service, error) {
 
-	ch.Values["keptn"] = `
-  project: prj,
-  stage: stg,
-  service: svc,
-  deployment: dpl`
-	renderedTemplates, err := engine.Render(ch, ch.Values)
+	renderedTemplates, err := renderTemplatesWithKeptnValues(ch)
 	if err != nil {
 		return nil, err
 	}
@@ -468,6 +457,32 @@ func GetRenderedServices(ch *chart.Chart) ([]*typesv1.Service, error) {
 	}
 
 	return services, nil
+}
+
+func renderTemplatesWithKeptnValues(ch *chart.Chart) (map[string]string, error) {
+	keptnValues := map[string]interface{}{
+		"keptn": map[string]interface{}{
+			"project":    "prj",
+			"stage":      "stage",
+			"service":    "svc",
+			"deployment": "dpl",
+		},
+	}
+
+	cvals, err := chartutil.CoalesceValues(ch, keptnValues)
+	if err != nil {
+		return nil, err
+	}
+	options := chartutil.ReleaseOptions{
+		Name: "testRelease",
+	}
+	valuesToRender, err := chartutil.ToRenderValues(ch, cvals, options, nil)
+
+	renderedTemplates, err := engine.Render(ch, valuesToRender)
+	if err != nil {
+		return nil, err
+	}
+	return renderedTemplates, nil
 }
 
 // IsService tests whether the provided struct is a service
