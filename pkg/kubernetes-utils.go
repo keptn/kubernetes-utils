@@ -93,18 +93,6 @@ func GetFiles(workingPath string, suffixes ...string) ([]string, error) {
 	return files, err
 }
 
-// DoHelmUpgrade executes a helm update and upgrade
-func DoHelmUpgrade(project string, stage string) error {
-	helmChart := fmt.Sprintf("%s/helm-chart", project)
-	projectStage := fmt.Sprintf("%s-%s", project, stage)
-	_, err := ExecuteCommand("helm", []string{"dep", "update", helmChart})
-	if err != nil {
-		return err
-	}
-	_, err = ExecuteCommand("helm", []string{"upgrade", "--install", projectStage, helmChart, "--namespace", projectStage, "--wait"})
-	return err
-}
-
 // RestartPodsWithSelector restarts the pods which are found in the provided namespace and selector
 func RestartPodsWithSelector(useInClusterConfig bool, namespace string, selector string) error {
 	clientset, err := GetKubeAPI(useInClusterConfig)
