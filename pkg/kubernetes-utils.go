@@ -12,13 +12,15 @@ import (
 	"strings"
 	"time"
 
+	"sigs.k8s.io/yaml"
+
+	"helm.sh/helm/v3/pkg/chart"
+	"helm.sh/helm/v3/pkg/chart/loader"
+	"helm.sh/helm/v3/pkg/chartutil"
+	"helm.sh/helm/v3/pkg/engine"
 	"k8s.io/client-go/kubernetes"
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/util/retry"
-	"k8s.io/helm/pkg/chartutil"
-	"k8s.io/helm/pkg/proto/hapi/chart"
-	"k8s.io/helm/pkg/renderutil"
-	"k8s.io/helm/pkg/timeconv"
 
 	appsv1 "k8s.io/api/apps/v1"
 	typesv1 "k8s.io/api/core/v1"
@@ -31,6 +33,8 @@ import (
 	_ "github.com/Azure/go-autorest/autorest"
 	"github.com/keptn/go-utils/pkg/api/models"
 	utils "github.com/keptn/go-utils/pkg/api/utils"
+
+	// Initialize all known client auth plugins.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -89,22 +93,6 @@ func GetFiles(workingPath string, suffixes ...string) ([]string, error) {
 		return nil
 	})
 	return files, err
-}
-
-// DoHelmUpgrade executes a helm update and upgrade
-func DoHelmUpgrade(project string, stage string) error {
-	helmChart := fmt.Sprintf("%s/helm-chart", project)
-	projectStage := fmt.Sprintf("%s-%s", project, stage)
-	_, err := ExecuteCommand("helm", []string{"init", "--client-only"})
-	if err != nil {
-		return err
-	}
-	_, err = ExecuteCommand("helm", []string{"dep", "update", helmChart})
-	if err != nil {
-		return err
-	}
-	_, err = ExecuteCommand("helm", []string{"upgrade", "--install", projectStage, helmChart, "--namespace", projectStage, "--wait"})
-	return err
 }
 
 // RestartPodsWithSelector restarts the pods which are found in the provided namespace and selector
@@ -370,12 +358,12 @@ func GetChart(project string, service string, stage string, chartName string, co
 
 // LoadChart converts a byte array into a Chart
 func LoadChart(data []byte) (*chart.Chart, error) {
-	return chartutil.LoadArchive(bytes.NewReader(data))
+	return loader.LoadArchive(bytes.NewReader(data))
 }
 
 // LoadChartFromPath loads a directory or Helm chart into a Chart
 func LoadChartFromPath(path string) (*chart.Chart, error) {
-	return chartutil.Load(path)
+	return loader.Load(path)
 }
 
 // PackageChart packages the chart and returns it
@@ -385,6 +373,18 @@ func PackageChart(ch *chart.Chart) ([]byte, error) {
 		return nil, fmt.Errorf("Error when packaging chart: %s", err.Error())
 	}
 	defer os.RemoveAll(helmPackage)
+
+	// Marshal values into values.yaml
+	// This step is necessary as chartutil.Save uses the Raw content
+	for _, f := range ch.Raw {
+		if f.Name == chartutil.ValuesfileName {
+			f.Data, err = yaml.Marshal(ch.Values)
+			if err != nil {
+				return nil, err
+			}
+			break
+		}
+	}
 
 	name, err := chartutil.Save(ch, helmPackage)
 	if err != nil {
@@ -401,20 +401,7 @@ func PackageChart(ch *chart.Chart) ([]byte, error) {
 // GetRenderedDeployments returns all deployments contained in the provided chart
 func GetRenderedDeployments(ch *chart.Chart) ([]*appsv1.Deployment, error) {
 
-	renderOpts := renderutil.Options{
-		ReleaseOptions: chartutil.ReleaseOptions{
-			Name:      ch.Metadata.Name,
-			IsInstall: false,
-			IsUpgrade: false,
-			Time:      timeconv.Now(),
-		},
-	}
-	ch.Values.Raw += `
-keptn:
-  project: prj,
-  service: svc,
-  deployment: dpl`
-	renderedTemplates, err := renderutil.Render(ch, ch.Values, renderOpts)
+	renderedTemplates, err := renderTemplatesWithKeptnValues(ch)
 	if err != nil {
 		return nil, err
 	}
@@ -446,20 +433,7 @@ keptn:
 // GetRenderedServices returns all services contained in the provided chart
 func GetRenderedServices(ch *chart.Chart) ([]*typesv1.Service, error) {
 
-	renderOpts := renderutil.Options{
-		ReleaseOptions: chartutil.ReleaseOptions{
-			Name:      ch.Metadata.Name,
-			IsInstall: false,
-			IsUpgrade: false,
-			Time:      timeconv.Now(),
-		},
-	}
-	ch.Values.Raw += `
-keptn:
-  project: prj,
-  service: svc,
-  deployment: dpl`
-	renderedTemplates, err := renderutil.Render(ch, ch.Values, renderOpts)
+	renderedTemplates, err := renderTemplatesWithKeptnValues(ch)
 	if err != nil {
 		return nil, err
 	}
@@ -485,6 +459,32 @@ keptn:
 	}
 
 	return services, nil
+}
+
+func renderTemplatesWithKeptnValues(ch *chart.Chart) (map[string]string, error) {
+	keptnValues := map[string]interface{}{
+		"keptn": map[string]interface{}{
+			"project":    "prj",
+			"stage":      "stage",
+			"service":    "svc",
+			"deployment": "dpl",
+		},
+	}
+
+	cvals, err := chartutil.CoalesceValues(ch, keptnValues)
+	if err != nil {
+		return nil, err
+	}
+	options := chartutil.ReleaseOptions{
+		Name: "testRelease",
+	}
+	valuesToRender, err := chartutil.ToRenderValues(ch, cvals, options, nil)
+
+	renderedTemplates, err := engine.Render(ch, valuesToRender)
+	if err != nil {
+		return nil, err
+	}
+	return renderedTemplates, nil
 }
 
 // IsService tests whether the provided struct is a service
