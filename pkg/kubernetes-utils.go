@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"sigs.k8s.io/yaml"
+
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/chartutil"
@@ -371,6 +373,18 @@ func PackageChart(ch *chart.Chart) ([]byte, error) {
 		return nil, fmt.Errorf("Error when packaging chart: %s", err.Error())
 	}
 	defer os.RemoveAll(helmPackage)
+
+	// Marshal values into values.yaml
+	// This step is necessary as chartutil.Save uses the Raw content
+	for _, f := range ch.Raw {
+		if f.Name == chartutil.ValuesfileName {
+			f.Data, err = yaml.Marshal(ch.Values)
+			if err != nil {
+				return nil, err
+			}
+			break
+		}
+	}
 
 	name, err := chartutil.Save(ch, helmPackage)
 	if err != nil {
