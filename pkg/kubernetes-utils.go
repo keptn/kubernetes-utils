@@ -243,9 +243,14 @@ func GetClientset(useInClusterConfig bool) (*kubernetes.Clientset, error) {
 	if useInClusterConfig {
 		config, err = rest.InClusterConfig()
 	} else {
-		kubeconfig := filepath.Join(
-			UserHomeDir(), ".kube", "config",
-		)
+		var kubeconfig string
+		if os.Getenv("KUBECONFIG") != "" {
+			kubeconfig = ExpandTilde(os.Getenv("KUBECONFIG"))
+		} else {
+			kubeconfig = filepath.Join(
+				UserHomeDir(), ".kube", "config",
+			)
+		}
 		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
 	}
 	if err != nil {
