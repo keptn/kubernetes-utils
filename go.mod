@@ -4,11 +4,12 @@ go 1.13
 
 require (
 	github.com/Azure/go-autorest/autorest v0.9.0
-	github.com/keptn/go-utils v0.6.1-compat.0.20200414111241-846f2becaf21
+	github.com/keptn/go-utils v0.7.0
 	helm.sh/helm/v3 v3.1.2
 	k8s.io/api v0.17.2
 	k8s.io/apimachinery v0.17.2
 	k8s.io/client-go v0.17.2
+	sigs.k8s.io/yaml v1.1.0
 )
 
 // Transitive requirement from Helm: See https://github.com/helm/helm/blob/v3.1.2/go.mod
