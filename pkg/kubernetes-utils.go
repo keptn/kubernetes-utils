@@ -314,18 +314,18 @@ func getHelmChartURI(chartName string) string {
 }
 
 // StoreChart stores a chart in the configuration service
-func StoreChart(project string, service string, stage string, chartName string, helmChart []byte, configServiceURL string) error {
+func StoreChart(project string, service string, stage string, chartName string, helmChart []byte, configServiceURL string) (string, error) {
 	resourceHandler := utils.NewResourceHandler(configServiceURL)
 
 	uri := getHelmChartURI(chartName)
 	resource := models.Resource{ResourceURI: &uri, ResourceContent: string(helmChart)}
 
-	_, err := resourceHandler.CreateServiceResources(project, stage, service, []*models.Resource{&resource})
+	version, err := resourceHandler.CreateServiceResources(project, stage, service, []*models.Resource{&resource})
 	if err != nil {
-		return fmt.Errorf("Error when storing chart %s of service %s in project %s: %s",
+		return "", fmt.Errorf("Error when storing chart %s of service %s in project %s: %s",
 			chartName, service, project, err.Error())
 	}
-	return nil
+	return version, nil
 }
 
 // GetChart reads the chart from the configuration service
