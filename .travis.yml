@@ -50,6 +50,7 @@ jobs:
         # checkout master and ensure we are up2date
         - git checkout master
         - git pull || travis_terminate 1
+        - export BASE=master
         - export TARGET_BRANCH=patch/kubernetes_utils_${KUBERNETES_UTILS_TARGET}
         # delete existing branch just in case
         - git branch -D $TARGET_BRANCH &>/dev/null || true
