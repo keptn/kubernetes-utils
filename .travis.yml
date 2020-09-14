@@ -33,8 +33,8 @@ jobs:
       os: linux
       if: not type = pull_request and (branch = master or tag IS present)
       before_script:
-        - git config --global user.email "florian.bacher@dynatrace.com"
-        - git config --global user.name "Florian Bacher (kubernetes-utils Bot)"
+        - git config --global user.email "christian.kreuzberger@dynatrace.com"
+        - git config --global user.name "Christian Kreuzberger (kubernetes-utils Bot)"
         # figure out if this is a tag
         - |
           KUBERNETES_UTILS_TARGET=$TRAVIS_COMMIT
