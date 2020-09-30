@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/Azure/go-autorest/autorest v0.9.0
 	github.com/keptn/go-utils v0.7.0
+	github.com/magiconair/properties v1.8.0
 	helm.sh/helm/v3 v3.1.2
 	k8s.io/api v0.17.2
 	k8s.io/apimachinery v0.17.2
