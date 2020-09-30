@@ -24,7 +24,10 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	typesv1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sruntime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/scheme"
 
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	kyaml "k8s.io/apimachinery/pkg/util/yaml"
@@ -449,6 +452,60 @@ func GetRenderedServices(ch *chart.Chart) ([]*typesv1.Service, error) {
 	}
 
 	return services, nil
+}
+
+// CheckRecommendedLabels returns true if all resources in the provided chart have all the recommended labels
+func CheckRecommendedLabels(ch *chart.Chart) (bool, error) {
+	renderedTemplates, err := renderTemplatesWithKeptnValues(ch)
+	if err != nil {
+		return false, err
+	}
+
+	for _, v := range renderedTemplates {
+		obj, _, err := scheme.Codecs.UniversalDeserializer().Decode([]byte(v), nil, nil)
+		if k8sruntime.IsMissingKind(err) {
+			continue
+		} else if err != nil {
+			return false, err
+		}
+		objMeta, err := meta.Accessor(obj)
+		if err != nil {
+			return false, err
+		}
+		if !recommendedLabelsExist(objMeta.GetLabels()) {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
+// Source: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels
+var recommendedLabels = []string{
+	"app.kubernetes.io/name",
+	"app.kubernetes.io/instance",
+	"app.kubernetes.io/version",
+	"app.kubernetes.io/component",
+	"app.kubernetes.io/part-of",
+	"app.kubernetes.io/managed-by",
+}
+
+func recommendedLabelsExist(resourceLabels map[string]string) bool {
+	recommendedLabelExists := make(map[string]bool)
+	for _, l := range recommendedLabels {
+		recommendedLabelExists[l] = false
+	}
+	for l := range resourceLabels {
+		if _, isRecommendedLabel := recommendedLabelExists[l]; isRecommendedLabel {
+			recommendedLabelExists[l] = true
+		}
+	}
+	for _, exists := range recommendedLabelExists {
+		if !exists {
+			return false
+		}
+	}
+	return true
 }
 
 func renderTemplatesWithKeptnValues(ch *chart.Chart) (map[string]string, error) {
