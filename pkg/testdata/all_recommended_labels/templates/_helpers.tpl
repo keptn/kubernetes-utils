@@ -39,6 +39,8 @@ helm.sh/chart: {{ include "all_recommended_labels.chart" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
+app.kubernetes.io/component: some-component
+app.kubernetes.io/part-of: kubernetes-utils-tests
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
