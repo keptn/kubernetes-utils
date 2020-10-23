@@ -200,7 +200,7 @@ func WaitForDeploymentToBeRolledOut(useInClusterConfig bool, deploymentName stri
 		}
 		retries = retries + 1
 		if retries >= maxWaitForDeploymentRetries {
-			fmt.Errorf("Timed out waiting for deployment %q", deployment.Name)
+			return fmt.Errorf("Timed out waiting for deployment %q", deployment.Name)
 		}
 	}
 }
