@@ -169,7 +169,9 @@ func WaitForDeploymentToBeRolledOut(useInClusterConfig bool, deploymentName stri
 		return err
 	}
 
+	const maxWaitForDeploymentRetries = 90
 	deployment, err := getDeployment(clientset, namespace, deploymentName)
+	retries := 0
 	for {
 
 		var cond *appsv1.DeploymentCondition
@@ -195,6 +197,10 @@ func WaitForDeploymentToBeRolledOut(useInClusterConfig bool, deploymentName stri
 		deployment, err = getDeployment(clientset, namespace, deploymentName)
 		if err != nil {
 			return err
+		}
+		retries = retries + 1
+		if retries >= maxWaitForDeploymentRetries {
+			fmt.Errorf("Timed out waiting for deplooyment %q", deployment.Name)
 		}
 	}
 }
