@@ -505,7 +505,7 @@ type ChartPackager interface {
 type chartPackager struct {
 }
 
-//NewChartpackaging creates a new Chartpackaging instance
+//NewChartpackaging creates a new chartPackager instance
 func NewChartPackager() *chartPackager {
 	return &chartPackager{}
 }
