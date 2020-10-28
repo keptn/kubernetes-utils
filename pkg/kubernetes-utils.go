@@ -321,13 +321,13 @@ func getHelmChartURI(chartName string) string {
 }
 
 // StoreChart stores a chart in the configuration service
-//Deprecated: StoreChart is deprecated, use ChartStorer.StoreChart instead
+//Deprecated: StoreChart is deprecated, use chartStorer.Store instead
 func StoreChart(project string, service string, stage string, chartName string, helmChart []byte, configServiceURL string) (string, error) {
 
-	cs := chartstorer{
+	cs := chartStorer{
 		resourceHandler: utils.NewResourceHandler(configServiceURL),
 	}
-	return cs.StoreChart(project, service, stage, chartName, helmChart)
+	return cs.Store(project, service, stage, chartName, helmChart)
 
 }
 
@@ -360,10 +360,10 @@ func LoadChartFromPath(path string) (*chart.Chart, error) {
 }
 
 // PackageChart packages the chart and returns it
-//Deprecated: PackageChart is deprecated, use ChartPackager.PackageChart instead
+//Deprecated: PackageChart is deprecated, use chartPackager.Package instead
 func PackageChart(ch *chart.Chart) ([]byte, error) {
 	cp := chartPackager{}
-	return cp.PackageChart(ch)
+	return cp.Package(ch)
 }
 
 // GetRenderedDeployments returns all deployments contained in the provided chart
@@ -465,25 +465,20 @@ func IsDeployment(dpl *appsv1.Deployment) bool {
 	return strings.ToLower(dpl.Kind) == "deployment"
 }
 
-//ChartStorer stores a chart in the configuration service
-type ChartStorer interface {
-	StoreChart(project string, service string, stage string, chartName string, helmChart []byte) (string, error)
-}
-
-//chartstorer is an implementation of a ChartStorer
-type chartstorer struct {
+//chartStorer  is able to store a helm chart
+type chartStorer struct {
 	resourceHandler *goutils.ResourceHandler
 }
 
-//NewChartStorer creates a new chartstorer instance
-func NewChartStorer(resourceHandler *goutils.ResourceHandler) *chartstorer {
-	return &chartstorer{
+//NewChartStorer creates a new chartStorer instance
+func NewChartStorer(resourceHandler *goutils.ResourceHandler) *chartStorer {
+	return &chartStorer{
 		resourceHandler: resourceHandler,
 	}
 }
 
-//StoreChart stores a chart in the configuration service
-func (cs chartstorer) StoreChart(project string, service string, stage string, chartName string, helmChart []byte) (string, error) {
+//Store stores a chart in the configuration service
+func (cs chartStorer) Store(project string, service string, stage string, chartName string, helmChart []byte) (string, error) {
 
 	uri := getHelmChartURI(chartName)
 	resource := models.Resource{ResourceURI: &uri, ResourceContent: string(helmChart)}
@@ -496,21 +491,17 @@ func (cs chartstorer) StoreChart(project string, service string, stage string, c
 	return version, nil
 }
 
-//ChartPackager packages a chart
-type ChartPackager interface {
-	PackageChart(ch *chart.Chart) ([]byte, error)
-}
-
-//chartPackager is an implementation of a Chartpackager
+//chartPackager is able to package a helm chart
 type chartPackager struct {
 }
 
-//NewChartpackaging creates a new chartPackager instance
+//NewChartPackager creates a new chartPackager instance
 func NewChartPackager() *chartPackager {
 	return &chartPackager{}
 }
 
-func (pc chartPackager) PackageChart(ch *chart.Chart) ([]byte, error) {
+//packages a helm chart into its byte representation
+func (pc chartPackager) Package(ch *chart.Chart) ([]byte, error) {
 	helmPackage, err := ioutil.TempDir("", "")
 	if err != nil {
 		return nil, fmt.Errorf("Error when packaging chart: %s", err.Error())
