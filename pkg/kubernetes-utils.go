@@ -327,7 +327,15 @@ func StoreChart(project string, service string, stage string, chartName string, 
 	cs := chartStorer{
 		resourceHandler: utils.NewResourceHandler(configServiceURL),
 	}
-	return cs.Store(project, service, stage, chartName, helmChart)
+
+	opts := StoreChartOptions{
+		Project:   project,
+		Service:   service,
+		Stage:     stage,
+		ChartName: chartName,
+		HelmChart: helmChart,
+	}
+	return cs.Store(opts)
 
 }
 
@@ -470,6 +478,15 @@ type chartStorer struct {
 	resourceHandler *goutils.ResourceHandler
 }
 
+//StoreChartOptions are the parameters for storing a chart
+type StoreChartOptions struct {
+	Project   string
+	Service   string
+	Stage     string
+	ChartName string
+	HelmChart []byte
+}
+
 //NewChartStorer creates a new chartStorer instance
 func NewChartStorer(resourceHandler *goutils.ResourceHandler) *chartStorer {
 	return &chartStorer{
@@ -478,15 +495,15 @@ func NewChartStorer(resourceHandler *goutils.ResourceHandler) *chartStorer {
 }
 
 //Store stores a chart in the configuration service
-func (cs chartStorer) Store(project string, service string, stage string, chartName string, helmChart []byte) (string, error) {
+func (cs chartStorer) Store(storeChartOpts StoreChartOptions) (string, error) {
 
-	uri := getHelmChartURI(chartName)
-	resource := models.Resource{ResourceURI: &uri, ResourceContent: string(helmChart)}
+	uri := getHelmChartURI(storeChartOpts.ChartName)
+	resource := models.Resource{ResourceURI: &uri, ResourceContent: string(storeChartOpts.HelmChart)}
 
-	version, err := cs.resourceHandler.CreateServiceResources(project, stage, service, []*models.Resource{&resource})
+	version, err := cs.resourceHandler.CreateServiceResources(storeChartOpts.Project, storeChartOpts.Stage, storeChartOpts.Service, []*models.Resource{&resource})
 	if err != nil {
 		return "", fmt.Errorf("Error when storing chart %s of service %s in project %s: %s",
-			chartName, service, project, err.Error())
+			storeChartOpts.ChartName, storeChartOpts.Service, storeChartOpts.Project, err.Error())
 	}
 	return version, nil
 }
