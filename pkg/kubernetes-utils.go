@@ -22,6 +22,7 @@ import (
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/util/retry"
 
+	goutils "github.com/keptn/go-utils/pkg/api/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	typesv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -320,18 +321,22 @@ func getHelmChartURI(chartName string) string {
 }
 
 // StoreChart stores a chart in the configuration service
+//Deprecated: StoreChart is deprecated, use chartStorer.Store instead
 func StoreChart(project string, service string, stage string, chartName string, helmChart []byte, configServiceURL string) (string, error) {
-	resourceHandler := utils.NewResourceHandler(configServiceURL)
 
-	uri := getHelmChartURI(chartName)
-	resource := models.Resource{ResourceURI: &uri, ResourceContent: string(helmChart)}
-
-	version, err := resourceHandler.CreateServiceResources(project, stage, service, []*models.Resource{&resource})
-	if err != nil {
-		return "", fmt.Errorf("Error when storing chart %s of service %s in project %s: %s",
-			chartName, service, project, err.Error())
+	cs := chartStorer{
+		resourceHandler: utils.NewResourceHandler(configServiceURL),
 	}
-	return version, nil
+
+	opts := StoreChartOptions{
+		Project:   project,
+		Service:   service,
+		Stage:     stage,
+		ChartName: chartName,
+		HelmChart: helmChart,
+	}
+	return cs.Store(opts)
+
 }
 
 // GetChart reads the chart from the configuration service
@@ -363,35 +368,10 @@ func LoadChartFromPath(path string) (*chart.Chart, error) {
 }
 
 // PackageChart packages the chart and returns it
+//Deprecated: PackageChart is deprecated, use chartPackager.Package instead
 func PackageChart(ch *chart.Chart) ([]byte, error) {
-	helmPackage, err := ioutil.TempDir("", "")
-	if err != nil {
-		return nil, fmt.Errorf("Error when packaging chart: %s", err.Error())
-	}
-	defer os.RemoveAll(helmPackage)
-
-	// Marshal values into values.yaml
-	// This step is necessary as chartutil.Save uses the Raw content
-	for _, f := range ch.Raw {
-		if f.Name == chartutil.ValuesfileName {
-			f.Data, err = yaml.Marshal(ch.Values)
-			if err != nil {
-				return nil, err
-			}
-			break
-		}
-	}
-
-	name, err := chartutil.Save(ch, helmPackage)
-	if err != nil {
-		return nil, fmt.Errorf("Error when packaging chart: %s", err.Error())
-	}
-
-	data, err := ioutil.ReadFile(name)
-	if err != nil {
-		return nil, fmt.Errorf("Error when packaging chart: %s", err.Error())
-	}
-	return data, nil
+	cp := chartPackager{}
+	return cp.Package(ch)
 }
 
 // GetRenderedDeployments returns all deployments contained in the provided chart
@@ -491,4 +471,80 @@ func IsService(svc *typesv1.Service) bool {
 // IsDeployment tests whether the provided struct is a deployment
 func IsDeployment(dpl *appsv1.Deployment) bool {
 	return strings.ToLower(dpl.Kind) == "deployment"
+}
+
+//chartStorer  is able to store a helm chart
+type chartStorer struct {
+	resourceHandler *goutils.ResourceHandler
+}
+
+//StoreChartOptions are the parameters for storing a chart
+type StoreChartOptions struct {
+	Project   string
+	Service   string
+	Stage     string
+	ChartName string
+	HelmChart []byte
+}
+
+//NewChartStorer creates a new chartStorer instance
+func NewChartStorer(resourceHandler *goutils.ResourceHandler) *chartStorer {
+	return &chartStorer{
+		resourceHandler: resourceHandler,
+	}
+}
+
+//Store stores a chart in the configuration service
+func (cs chartStorer) Store(storeChartOpts StoreChartOptions) (string, error) {
+
+	uri := getHelmChartURI(storeChartOpts.ChartName)
+	resource := models.Resource{ResourceURI: &uri, ResourceContent: string(storeChartOpts.HelmChart)}
+
+	version, err := cs.resourceHandler.CreateServiceResources(storeChartOpts.Project, storeChartOpts.Stage, storeChartOpts.Service, []*models.Resource{&resource})
+	if err != nil {
+		return "", fmt.Errorf("Error when storing chart %s of service %s in project %s: %s",
+			storeChartOpts.ChartName, storeChartOpts.Service, storeChartOpts.Project, err.Error())
+	}
+	return version, nil
+}
+
+//chartPackager is able to package a helm chart
+type chartPackager struct {
+}
+
+//NewChartPackager creates a new chartPackager instance
+func NewChartPackager() *chartPackager {
+	return &chartPackager{}
+}
+
+//packages a helm chart into its byte representation
+func (pc chartPackager) Package(ch *chart.Chart) ([]byte, error) {
+	helmPackage, err := ioutil.TempDir("", "")
+	if err != nil {
+		return nil, fmt.Errorf("Error when packaging chart: %s", err.Error())
+	}
+	defer os.RemoveAll(helmPackage)
+
+	// Marshal values into values.yaml
+	// This step is necessary as chartutil.Save uses the Raw content
+	for _, f := range ch.Raw {
+		if f.Name == chartutil.ValuesfileName {
+			f.Data, err = yaml.Marshal(ch.Values)
+			if err != nil {
+				return nil, err
+			}
+			break
+		}
+	}
+
+	name, err := chartutil.Save(ch, helmPackage)
+	if err != nil {
+		return nil, fmt.Errorf("Error when packaging chart: %s", err.Error())
+	}
+
+	data, err := ioutil.ReadFile(name)
+	if err != nil {
+		return nil, fmt.Errorf("Error when packaging chart: %s", err.Error())
+	}
+	return data, nil
 }
