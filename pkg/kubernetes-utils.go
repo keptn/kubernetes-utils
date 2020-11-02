@@ -340,21 +340,22 @@ func StoreChart(project string, service string, stage string, chartName string, 
 }
 
 // GetChart reads the chart from the configuration service
-func GetChart(project string, service string, stage string, chartName string, configServiceURL string) (*chart.Chart, error) {
+func GetChart(project string, service string, stage string, chartName string, configServiceURL string) (*chart.Chart, string, error) {
 	resourceHandler := utils.NewResourceHandler(configServiceURL)
 
 	resource, err := resourceHandler.GetServiceResource(project, stage, service, getHelmChartURI(chartName))
 	if err != nil {
-		return nil, fmt.Errorf("Error when reading chart %s from project %s: %s",
+		return nil, "", fmt.Errorf("Error when reading chart %s from project %s: %s",
 			chartName, project, err.Error())
 	}
+	commitID := resource.Version
 
 	ch, err := LoadChart([]byte(resource.ResourceContent))
 	if err != nil {
-		return nil, fmt.Errorf("Error when reading chart %s from project %s: %s",
+		return nil, "", fmt.Errorf("Error when reading chart %s from project %s: %s",
 			chartName, project, err.Error())
 	}
-	return ch, nil
+	return ch, commitID, nil
 }
 
 // LoadChart converts a byte array into a Chart
