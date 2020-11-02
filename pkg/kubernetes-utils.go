@@ -339,7 +339,7 @@ func StoreChart(project string, service string, stage string, chartName string, 
 
 }
 
-// GetChart reads the chart from the configuration service
+// GetChart returns the chart and the related git commit ID from the configuration service
 func GetChart(project string, service string, stage string, chartName string, configServiceURL string) (*chart.Chart, string, error) {
 	resourceHandler := utils.NewResourceHandler(configServiceURL)
 
