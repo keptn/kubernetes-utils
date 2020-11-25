@@ -27,6 +27,7 @@ import (
 	typesv1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	kyaml "k8s.io/apimachinery/pkg/util/yaml"
@@ -323,6 +324,20 @@ func GetKeptnManagedNamespace(useInClusterConfig bool) ([]string, error) {
 		}
 	}
 	return namespaces, nil
+}
+
+// PatchKeptnManagedNamespace to patch the namespace with the annotation & label `keptn.sh/managed-by: keptn`
+func PatchKeptnManagedNamespace(useInClusterConfig bool, namespace string) error {
+	var patchData = []byte(`{"metadata": {"annotations": {"keptn.sh/managed-by": "keptn"}, "labels": {"keptn.sh/managed-by": "keptn"}}}`)
+	clientset, err := GetClientset(useInClusterConfig)
+	if err != nil {
+		return err
+	}
+	_, err = clientset.CoreV1().Namespaces().Patch(namespace, types.StrategicMergePatchType, patchData)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // GetKeptnEndpointFromIngress returns the host of ingress object Keptn Installation
