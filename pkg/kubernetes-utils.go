@@ -367,7 +367,10 @@ func GetKeptnEndpointFromService(useInClusterConfig bool, namespace string, serv
 	}
 	switch keptnService.Spec.Type {
 	case "LoadBalancer":
-		return keptnService.Status.LoadBalancer.Ingress[0].IP, nil
+		if len(keptnService.Status.LoadBalancer.Ingress) > 0 {
+			return keptnService.Status.LoadBalancer.Ingress[0].IP, nil
+		}
+		return "", fmt.Errorf("Loadbalancer IP isn't found")
 	default:
 		return "", fmt.Errorf("It doesn't support ClusterIP & NodePort type service for fetching endpoint automatically")
 	}
