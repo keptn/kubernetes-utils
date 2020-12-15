@@ -25,7 +25,9 @@ import (
 	goutils "github.com/keptn/go-utils/pkg/api/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	typesv1 "k8s.io/api/core/v1"
+	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	kyaml "k8s.io/apimachinery/pkg/util/yaml"
@@ -268,9 +270,16 @@ func GetClientset(useInClusterConfig bool) (*kubernetes.Clientset, error) {
 }
 
 // CreateNamespace creates a new Kubernetes namespace with the provided name
-func CreateNamespace(useInClusterConfig bool, namespace string) error {
+func CreateNamespace(useInClusterConfig bool, namespace string, namespaceMetadata ...metav1.ObjectMeta) error {
 
-	ns := &typesv1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
+	var buildNamespaceMetadata metav1.ObjectMeta
+	if len(namespaceMetadata) > 0 {
+		buildNamespaceMetadata = namespaceMetadata[0]
+	}
+
+	buildNamespaceMetadata.Name = namespace
+
+	ns := &typesv1.Namespace{ObjectMeta: buildNamespaceMetadata}
 	clientset, err := GetClientset(useInClusterConfig)
 	if err != nil {
 		return err
@@ -293,6 +302,95 @@ func ExistsNamespace(useInClusterConfig bool, namespace string) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+// GetKeptnManagedNamespace returns the list of namespace with the annotation & label `keptn.sh/managed-by: keptn`
+func GetKeptnManagedNamespace(useInClusterConfig bool) ([]string, error) {
+	var namespaceList *typesv1.NamespaceList
+	var namespaces []string
+	clientset, err := GetClientset(useInClusterConfig)
+	if err != nil {
+		return nil, err
+	}
+	namespaceList, err = clientset.CoreV1().Namespaces().List(metav1.ListOptions{
+		LabelSelector: "keptn.sh/managed-by",
+	})
+	if err != nil {
+		return nil, err
+	}
+	for _, namespace := range namespaceList.Items {
+		if metav1.HasAnnotation(namespace.ObjectMeta, "keptn.sh/managed-by") {
+			namespaces = append(namespaces, namespace.GetObjectMeta().GetName())
+		}
+	}
+	return namespaces, nil
+}
+
+// PatchKeptnManagedNamespace to patch the namespace with the annotation & label `keptn.sh/managed-by: keptn`
+func PatchKeptnManagedNamespace(useInClusterConfig bool, namespace string) error {
+	var patchData = []byte(`{"metadata": {"annotations": {"keptn.sh/managed-by": "keptn"}, "labels": {"keptn.sh/managed-by": "keptn"}}}`)
+	clientset, err := GetClientset(useInClusterConfig)
+	if err != nil {
+		return err
+	}
+	_, err = clientset.CoreV1().Namespaces().Patch(namespace, types.StrategicMergePatchType, patchData)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// GetKeptnEndpointFromIngress returns the host of ingress object Keptn Installation
+func GetKeptnEndpointFromIngress(useInClusterConfig bool, namespace string, ingressName string) (string, error) {
+	var keptnIngress *v1beta1.Ingress
+	clientset, err := GetClientset(useInClusterConfig)
+	if err != nil {
+		return "", err
+	}
+	keptnIngress, err = clientset.ExtensionsV1beta1().Ingresses(namespace).Get(ingressName, metav1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+	return keptnIngress.Spec.Rules[0].Host, nil
+}
+
+// GetKeptnEndpointFromService returns the loadbalancer service IP from Keptn Installation
+func GetKeptnEndpointFromService(useInClusterConfig bool, namespace string, serviceName string) (string, error) {
+	var keptnService *typesv1.Service
+	clientset, err := GetClientset(useInClusterConfig)
+	if err != nil {
+		return "", err
+	}
+	keptnService, err = clientset.CoreV1().Services(namespace).Get(serviceName, metav1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+	switch keptnService.Spec.Type {
+	case "LoadBalancer":
+		if len(keptnService.Status.LoadBalancer.Ingress) > 0 {
+			return keptnService.Status.LoadBalancer.Ingress[0].IP, nil
+		}
+		return "", fmt.Errorf("Loadbalancer IP isn't found")
+	default:
+		return "", fmt.Errorf("It doesn't support ClusterIP & NodePort type service for fetching endpoint automatically")
+	}
+}
+
+// GetKeptnAPITokenFromSecret returns the `keptn-api-token` data secret from Keptn Installation
+func GetKeptnAPITokenFromSecret(useInClusterConfig bool, namespace string, secretName string) (string, error) {
+	var keptnSecret *typesv1.Secret
+	clientset, err := GetClientset(useInClusterConfig)
+	if err != nil {
+		return "", err
+	}
+	keptnSecret, err = clientset.CoreV1().Secrets(namespace).Get(secretName, metav1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+	if apitoken, ok := keptnSecret.Data["keptn-api-token"]; ok {
+		return string(apitoken), nil
+	}
+	return "", fmt.Errorf("data 'keptn-api-token' not found")
 }
 
 // ExecuteCommand exectues the command using the args
