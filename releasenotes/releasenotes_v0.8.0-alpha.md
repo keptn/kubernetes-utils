@@ -1,4 +1,4 @@
-# Release Notes 0.2.0
+# Release Notes 0.8.0-alpha
 
 This module contains helper functions that are mainly related to Kubernetes and Helm specific tasks within Keptn.
 
