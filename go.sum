@@ -299,6 +299,8 @@ github.com/keptn/go-utils v0.8.0-alpha.0.20210208113105-68b30a2c8f39 h1:MgYt60Ni
 github.com/keptn/go-utils v0.8.0-alpha.0.20210208113105-68b30a2c8f39/go.mod h1:K8ZE1XraoVWyNe15E8hpMVWOyF1ag1PzYI0hteYsH00=
 github.com/keptn/go-utils v0.8.0-alpha.0.20210208142406-58c683ee0752 h1:MQqv0wQ2ETKmnYroGK83vLlLz2/QLK2M1ML4pKTAMig=
 github.com/keptn/go-utils v0.8.0-alpha.0.20210208142406-58c683ee0752/go.mod h1:K8ZE1XraoVWyNe15E8hpMVWOyF1ag1PzYI0hteYsH00=
+github.com/keptn/go-utils v0.8.0-alpha.0.20210208150028-1aa8e3be87ef h1:zO5IxbHVuLom7f+muGF5+Iiu+KAAj/QndJsbX+nPzFw=
+github.com/keptn/go-utils v0.8.0-alpha.0.20210208150028-1aa8e3be87ef/go.mod h1:K8ZE1XraoVWyNe15E8hpMVWOyF1ag1PzYI0hteYsH00=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
