@@ -446,7 +446,7 @@ func GetChart(project string, service string, stage string, chartName string, co
 		return nil, "", fmt.Errorf("Error when reading chart %s from project %s: %s",
 			chartName, project, err.Error())
 	}
-	commitID := resource.Version
+	commitID := resource.Metadata.Version
 
 	ch, err := LoadChart([]byte(resource.ResourceContent))
 	if err != nil {
