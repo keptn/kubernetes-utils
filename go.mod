@@ -6,8 +6,8 @@ require (
 	github.com/Azure/go-autorest/autorest v0.9.0
 	github.com/keptn/go-utils v0.8.0-alpha.0.20210209153241-3c858340d072
 	helm.sh/helm/v3 v3.1.2
-	k8s.io/api v0.17.2
-	k8s.io/apimachinery v0.17.2
+	k8s.io/api v0.20.3
+	k8s.io/apimachinery v0.20.3
 	k8s.io/client-go v0.17.2
 	sigs.k8s.io/yaml v1.2.0
 )
