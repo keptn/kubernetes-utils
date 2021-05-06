@@ -7,10 +7,8 @@ require (
 	github.com/keptn/go-utils v0.8.3
 	helm.sh/helm/v3 v3.5.1
 	k8s.io/api v0.20.4
-	k8s.io/apimachinery v0.20.4
+	k8s.io/apimachinery v0.21.0
 	k8s.io/client-go v0.20.4
-	k8s.io/klog v1.0.0 // indirect
-	k8s.io/kubectl v0.20.4 // indirect
 	sigs.k8s.io/yaml v1.2.0
 )
 
