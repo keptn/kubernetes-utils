@@ -14,7 +14,9 @@ for file in *; do
       echo "Yes, updating kubernetes-utils now..."
       cd $file || exit
       # fetch the desired version (this will update go.mod and go.sum)
-      go get "github.com/keptn/kubernetes-utils@$KUBERNETES_UTILS_TARGET"
+      go get "github.com/keptn/kubernetes-utils@$KUBERNETES_UTILS_TARGET" && \
+      go get ./... && \
+      go mod tidy
       cd - || exit
     fi
   fi
