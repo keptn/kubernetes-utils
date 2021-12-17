@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"k8s.io/client-go/dynamic"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -247,7 +248,25 @@ func GetKubeAPI(useInClusterConfig bool) (v1.CoreV1Interface, error) {
 
 // GetClientset returns the kubernetes Clientset
 func GetClientset(useInClusterConfig bool) (*kubernetes.Clientset, error) {
+	config, err := getKubeConfig(useInClusterConfig)
+	if err != nil {
+		return nil, err
+	}
 
+	return kubernetes.NewForConfig(config)
+}
+
+// GetDynamicClient returns a dynamic K8s client
+func GetDynamicClient(useInClusterConfig bool) (dynamic.Interface, error) {
+	config, err := getKubeConfig(useInClusterConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return dynamic.NewForConfig(config)
+}
+
+func getKubeConfig(useInClusterConfig bool) (*rest.Config, error) {
 	var config *rest.Config
 	var err error
 	if useInClusterConfig {
@@ -266,8 +285,7 @@ func GetClientset(useInClusterConfig bool) (*kubernetes.Clientset, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	return kubernetes.NewForConfig(config)
+	return config, nil
 }
 
 // CreateNamespace creates a new Kubernetes namespace with the provided name
