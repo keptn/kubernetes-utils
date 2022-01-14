@@ -609,6 +609,46 @@ func (cs chartStorer) Store(storeChartOpts StoreChartOptions) (string, error) {
 	return version, nil
 }
 
+//chartRetriever is able to store a helm chart
+type chartRetriever struct {
+	resourceHandler *goutils.ResourceHandler
+}
+
+//RetrieveChartOptions are the parameters to obtain a chart
+type RetrieveChartOptions struct {
+	Project   string
+	Service   string
+	Stage     string
+	ChartName string
+	CommitID  string
+}
+
+//NewChartRetriever creates a new chartRetriever instance
+func NewChartRetriever(resourceHandler *goutils.ResourceHandler) *chartRetriever {
+	return &chartRetriever{
+		resourceHandler: resourceHandler,
+	}
+}
+
+func (cs chartStorer) Retrieve(chartOpts RetrieveChartOptions) (*chart.Chart, error) {
+	cs.resourceHandler.SetOpts(utils.GetOptions{
+		CommitID: chartOpts.CommitID,
+	})
+	resource, err := cs.resourceHandler.GetServiceResource(
+		chartOpts.Project, chartOpts.Stage, chartOpts.Service, getHelmChartURI(chartOpts.ChartName))
+
+	if err != nil {
+		return nil, fmt.Errorf("Error when reading chart %s from project %s: %s",
+			chartOpts.ChartName, chartOpts.Project, err.Error())
+	}
+	ch, err := LoadChart([]byte(resource.ResourceContent))
+	if err != nil {
+		return nil, fmt.Errorf("Error when reading chart %s from project %s: %s",
+			chartOpts.ChartName, chartOpts.Project, err.Error())
+	}
+	return ch, nil
+}
+
 //chartPackager is able to package a helm chart
 type chartPackager struct {
 }
