@@ -630,7 +630,7 @@ func NewChartRetriever(resourceHandler *goutils.ResourceHandler) *chartRetriever
 	}
 }
 
-func (cs chartStorer) Retrieve(chartOpts RetrieveChartOptions) (*chart.Chart, error) {
+func (cs chartStorer) Retrieve(chartOpts RetrieveChartOptions) (*chart.Chart, string, error) {
 	cs.resourceHandler.SetOpts(utils.GetOptions{
 		CommitID: chartOpts.CommitID,
 	})
@@ -638,15 +638,19 @@ func (cs chartStorer) Retrieve(chartOpts RetrieveChartOptions) (*chart.Chart, er
 		chartOpts.Project, chartOpts.Stage, chartOpts.Service, getHelmChartURI(chartOpts.ChartName))
 
 	if err != nil {
-		return nil, fmt.Errorf("Error when reading chart %s from project %s: %s",
+		return nil, "", fmt.Errorf("Error when reading chart %s from project %s: %s",
 			chartOpts.ChartName, chartOpts.Project, err.Error())
 	}
 	ch, err := LoadChart([]byte(resource.ResourceContent))
 	if err != nil {
-		return nil, fmt.Errorf("Error when reading chart %s from project %s: %s",
+		return nil, "", fmt.Errorf("Error when reading chart %s from project %s: %s",
 			chartOpts.ChartName, chartOpts.Project, err.Error())
 	}
-	return ch, nil
+	if chartOpts.CommitID == "" {
+		return ch, resource.Metadata.Version, nil
+	}
+
+	return ch, chartOpts.CommitID, nil
 }
 
 //chartPackager is able to package a helm chart
