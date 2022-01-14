@@ -630,7 +630,7 @@ func NewChartRetriever(resourceHandler *goutils.ResourceHandler) *chartRetriever
 	}
 }
 
-func (cs chartStorer) Retrieve(chartOpts RetrieveChartOptions) (*chart.Chart, string, error) {
+func (cs chartRetriever) Retrieve(chartOpts RetrieveChartOptions) (*chart.Chart, string, error) {
 	cs.resourceHandler.SetOpts(utils.GetOptions{
 		CommitID: chartOpts.CommitID,
 	})
