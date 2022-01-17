@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -631,11 +632,11 @@ func NewChartRetriever(resourceHandler *goutils.ResourceHandler) *chartRetriever
 }
 
 func (cs chartRetriever) Retrieve(chartOpts RetrieveChartOptions) (*chart.Chart, string, error) {
-	cs.resourceHandler.SetOpts(utils.GetOptions{
-		CommitID: chartOpts.CommitID,
-	})
+	option := url.Values{}
+	option.Add("commitID", chartOpts.CommitID)
 	resource, err := cs.resourceHandler.GetServiceResource(
-		chartOpts.Project, chartOpts.Stage, chartOpts.Service, getHelmChartURI(chartOpts.ChartName))
+		chartOpts.Project, chartOpts.Stage, chartOpts.Service,
+		getHelmChartURI(chartOpts.ChartName), goutils.AppendQuery(option))
 
 	if err != nil {
 		return nil, "", fmt.Errorf("Error when reading chart %s from project %s: %s",
