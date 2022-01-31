@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -607,6 +608,50 @@ func (cs chartStorer) Store(storeChartOpts StoreChartOptions) (string, error) {
 			storeChartOpts.ChartName, storeChartOpts.Service, storeChartOpts.Project, err.Error())
 	}
 	return version, nil
+}
+
+//chartRetriever is able to store a helm chart
+type chartRetriever struct {
+	resourceHandler *goutils.ResourceHandler
+}
+
+//RetrieveChartOptions are the parameters to obtain a chart
+type RetrieveChartOptions struct {
+	Project   string
+	Service   string
+	Stage     string
+	ChartName string
+	CommitID  string
+}
+
+//NewChartRetriever creates a new chartRetriever instance
+func NewChartRetriever(resourceHandler *goutils.ResourceHandler) *chartRetriever {
+	return &chartRetriever{
+		resourceHandler: resourceHandler,
+	}
+}
+
+func (cs chartRetriever) Retrieve(chartOpts RetrieveChartOptions) (*chart.Chart, string, error) {
+	option := url.Values{}
+	option.Add("gitCommitID", chartOpts.CommitID)
+	resource, err := cs.resourceHandler.GetServiceResource(
+		chartOpts.Project, chartOpts.Stage, chartOpts.Service,
+		getHelmChartURI(chartOpts.ChartName), goutils.AppendQuery(option))
+
+	if err != nil {
+		return nil, "", fmt.Errorf("Error when reading chart %s from project %s: %s",
+			chartOpts.ChartName, chartOpts.Project, err.Error())
+	}
+	ch, err := LoadChart([]byte(resource.ResourceContent))
+	if err != nil {
+		return nil, "", fmt.Errorf("Error when reading chart %s from project %s: %s",
+			chartOpts.ChartName, chartOpts.Project, err.Error())
+	}
+	if chartOpts.CommitID == "" {
+		return ch, resource.Metadata.Version, nil
+	}
+
+	return ch, chartOpts.CommitID, nil
 }
 
 //chartPackager is able to package a helm chart
