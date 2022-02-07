@@ -633,7 +633,9 @@ func NewChartRetriever(resourceHandler *goutils.ResourceHandler) *chartRetriever
 
 func (cs chartRetriever) Retrieve(chartOpts RetrieveChartOptions) (*chart.Chart, string, error) {
 	option := url.Values{}
-	option.Add("gitCommitID", chartOpts.CommitID)
+	if chartOpts.CommitID != "" {
+		option.Add("gitCommitID", chartOpts.CommitID)
+	}
 	resource, err := cs.resourceHandler.GetResource(
 		*goutils.NewResourceScope().
 			Project(chartOpts.Project).
