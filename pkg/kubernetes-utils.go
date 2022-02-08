@@ -443,8 +443,8 @@ func StoreChart(project string, service string, stage string, chartName string, 
 // GetChart returns the chart and the related git commit ID from the configuration service
 func GetChart(project string, service string, stage string, chartName string, configServiceURL string) (*chart.Chart, string, error) {
 	resourceHandler := utils.NewResourceHandler(configServiceURL)
-
-	resource, err := resourceHandler.GetServiceResource(project, stage, service, getHelmChartURI(chartName))
+	resourceScope := utils.NewResourceScope().Project(project).Stage(stage).Service(service).Resource(getHelmChartURI(chartName))
+	resource, err := resourceHandler.GetResource(*resourceScope)
 	if err != nil {
 		return nil, "", fmt.Errorf("Error when reading chart %s from project %s: %s",
 			chartName, project, err.Error())
@@ -633,10 +633,16 @@ func NewChartRetriever(resourceHandler *goutils.ResourceHandler) *chartRetriever
 
 func (cs chartRetriever) Retrieve(chartOpts RetrieveChartOptions) (*chart.Chart, string, error) {
 	option := url.Values{}
-	option.Add("gitCommitID", chartOpts.CommitID)
-	resource, err := cs.resourceHandler.GetServiceResource(
-		chartOpts.Project, chartOpts.Stage, chartOpts.Service,
-		getHelmChartURI(chartOpts.ChartName), goutils.AppendQuery(option))
+	if chartOpts.CommitID != "" {
+		option.Add("gitCommitID", chartOpts.CommitID)
+	}
+	resource, err := cs.resourceHandler.GetResource(
+		*goutils.NewResourceScope().
+			Project(chartOpts.Project).
+			Service(chartOpts.Service).
+			Resource(getHelmChartURI(chartOpts.ChartName)).
+			Stage(chartOpts.Stage),
+		goutils.AppendQuery(option))
 
 	if err != nil {
 		return nil, "", fmt.Errorf("Error when reading chart %s from project %s: %s",
