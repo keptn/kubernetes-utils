@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.13.0](https://github.com/keptn/kubernetes-utils/compare/v0.12.0...v0.13.0) (2022-02-17)
+
+
+### Features
+
+*  added retriever (keptn/keptn[#6349](https://github.com/keptn/keptn/issues/6349)) ([#113](https://github.com/keptn/keptn/issues/113)) ([088ca4b](https://github.com/keptn/kubernetes-utils/commit/088ca4bddca01146a3898a7eb8af8b5852805d47))
+* Updated retriever function (keptn/keptn[#6349](https://github.com/keptn/keptn/issues/6349)) ([#121](https://github.com/keptn/keptn/issues/121)) ([51758b9](https://github.com/keptn/kubernetes-utils/commit/51758b92ea0a689686460be52f72188c6bc7b3b8))
+
 ## [0.10.0](https://github.com/keptn/kubernetes-utils/compare/v0.9.0...v0.10.0) (2021-10-04)
 
 ## [0.9.0](https://github.com/keptn/kubernetes-utils/compare/v0.8.3...v0.9.0)
