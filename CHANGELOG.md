@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.14.0](https://github.com/keptn/kubernetes-utils/compare/v0.13.0...v0.14.0) (2022-05-06)
+
+
+### Other
+
+* Bring release pipelines up to date with keptn/keptn ([#129](https://github.com/keptn/keptn/issues/129)) ([02afb43](https://github.com/keptn/kubernetes-utils/commit/02afb43c03d73b46dc09d6a9906ccb2b5738bea6))
+* Update to Go 1.17 ([#133](https://github.com/keptn/keptn/issues/133)) ([6e3f2bc](https://github.com/keptn/kubernetes-utils/commit/6e3f2bcaf83159df48e34858f2da37ec726d280d))
+
 ## [0.13.0](https://github.com/keptn/kubernetes-utils/compare/v0.12.0...v0.13.0) (2022-02-17)
 
 
