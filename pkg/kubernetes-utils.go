@@ -27,7 +27,7 @@ import (
 	goutils "github.com/keptn/go-utils/pkg/api/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	typesv1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
@@ -345,12 +345,12 @@ func PatchKeptnManagedNamespace(useInClusterConfig bool, namespace string) error
 
 // GetKeptnEndpointFromIngress returns the host of ingress object Keptn Installation
 func GetKeptnEndpointFromIngress(useInClusterConfig bool, namespace string, ingressName string) (string, error) {
-	var keptnIngress *v1beta1.Ingress
+	var keptnIngress *networkingv1.Ingress
 	clientset, err := GetClientset(useInClusterConfig)
 	if err != nil {
 		return "", err
 	}
-	keptnIngress, err = clientset.ExtensionsV1beta1().Ingresses(namespace).Get(context.TODO(), ingressName, metav1.GetOptions{})
+	keptnIngress, err = clientset.NetworkingV1().Ingresses(namespace).Get(context.TODO(), ingressName, metav1.GetOptions{})
 	if err != nil {
 		return "", err
 	}
