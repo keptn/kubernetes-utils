@@ -48,6 +48,8 @@ import (
 const keptnFolderName = ".keptn"
 
 // GetKeptnDirectory returns a path, which is used to store logs and possibly creds
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func GetKeptnDirectory() (string, error) {
 
 	keptnDir := UserHomeDir() + string(os.PathSeparator) + keptnFolderName + string(os.PathSeparator)
@@ -64,6 +66,8 @@ func GetKeptnDirectory() (string, error) {
 }
 
 // UserHomeDir returns the HOME directory by taking into account the operating system
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func UserHomeDir() string {
 	if runtime.GOOS == "windows" {
 		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
@@ -76,6 +80,8 @@ func UserHomeDir() string {
 }
 
 // ExpandTilde expands ~ to HOME
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func ExpandTilde(fileName string) string {
 	if fileName == "~" {
 		return UserHomeDir()
@@ -86,6 +92,8 @@ func ExpandTilde(fileName string) string {
 }
 
 // GetFiles returns a list of files in a directory filtered by the provided suffix
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func GetFiles(workingPath string, suffixes ...string) ([]string, error) {
 	var files []string
 	err := filepath.Walk(workingPath, func(path string, info os.FileInfo, err error) error {
@@ -101,6 +109,8 @@ func GetFiles(workingPath string, suffixes ...string) ([]string, error) {
 }
 
 // RestartPodsWithSelector restarts the pods which are found in the provided namespace and selector
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func RestartPodsWithSelector(useInClusterConfig bool, namespace string, selector string) error {
 	clientset, err := GetKubeAPI(useInClusterConfig)
 	if err != nil {
@@ -165,9 +175,11 @@ func ScaleDeployment(useInClusterConfig bool, deployment string, namespace strin
 	return retryErr
 }
 
-func int32Ptr(i int32) *int32 { return &i }
+func int32Ptr(i int32) *int32	{ return &i }
 
 // WaitForDeploymentToBeRolledOut waits until the deployment is Available
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func WaitForDeploymentToBeRolledOut(useInClusterConfig bool, deploymentName string, namespace string) error {
 	clientset, err := GetClientset(useInClusterConfig)
 	if err != nil {
@@ -211,6 +223,8 @@ func WaitForDeploymentToBeRolledOut(useInClusterConfig bool, deploymentName stri
 }
 
 // WaitForDeploymentsInNamespace waits until all deployments in a namespace are available
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func WaitForDeploymentsInNamespace(useInClusterConfig bool, namespace string) error {
 	clientset, err := GetClientset(useInClusterConfig)
 	if err != nil {
@@ -236,6 +250,8 @@ func getDeployment(clientset *kubernetes.Clientset, namespace string, deployment
 }
 
 // GetKubeAPI returns the CoreV1Interface
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func GetKubeAPI(useInClusterConfig bool) (v1.CoreV1Interface, error) {
 
 	clientset, err := GetClientset(useInClusterConfig)
@@ -247,6 +263,8 @@ func GetKubeAPI(useInClusterConfig bool) (v1.CoreV1Interface, error) {
 }
 
 // GetClientset returns the kubernetes Clientset
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func GetClientset(useInClusterConfig bool) (*kubernetes.Clientset, error) {
 
 	var config *rest.Config
@@ -272,6 +290,8 @@ func GetClientset(useInClusterConfig bool) (*kubernetes.Clientset, error) {
 }
 
 // CreateNamespace creates a new Kubernetes namespace with the provided name
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func CreateNamespace(useInClusterConfig bool, namespace string, namespaceMetadata ...metav1.ObjectMeta) error {
 
 	var buildNamespaceMetadata metav1.ObjectMeta
@@ -291,6 +311,8 @@ func CreateNamespace(useInClusterConfig bool, namespace string, namespaceMetadat
 }
 
 // ExistsNamespace checks whether a namespace with the provided name exists
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func ExistsNamespace(useInClusterConfig bool, namespace string) (bool, error) {
 	clientset, err := GetClientset(useInClusterConfig)
 	if err != nil {
@@ -307,6 +329,8 @@ func ExistsNamespace(useInClusterConfig bool, namespace string) (bool, error) {
 }
 
 // GetKeptnManagedNamespace returns the list of namespace with the annotation & label `keptn.sh/managed-by: keptn`
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func GetKeptnManagedNamespace(useInClusterConfig bool) ([]string, error) {
 	var namespaceList *typesv1.NamespaceList
 	var namespaces []string
@@ -329,6 +353,8 @@ func GetKeptnManagedNamespace(useInClusterConfig bool) ([]string, error) {
 }
 
 // PatchKeptnManagedNamespace to patch the namespace with the annotation & label `keptn.sh/managed-by: keptn`
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func PatchKeptnManagedNamespace(useInClusterConfig bool, namespace string) error {
 	var patchData = []byte(`{"metadata": {"annotations": {"keptn.sh/managed-by": "keptn"}, "labels": {"keptn.sh/managed-by": "keptn"}}}`)
 	clientset, err := GetClientset(useInClusterConfig)
@@ -344,6 +370,8 @@ func PatchKeptnManagedNamespace(useInClusterConfig bool, namespace string) error
 }
 
 // GetKeptnEndpointFromIngress returns the host of ingress object Keptn Installation
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func GetKeptnEndpointFromIngress(useInClusterConfig bool, namespace string, ingressName string) (string, error) {
 	var keptnIngress *v1beta1.Ingress
 	clientset, err := GetClientset(useInClusterConfig)
@@ -358,6 +386,8 @@ func GetKeptnEndpointFromIngress(useInClusterConfig bool, namespace string, ingr
 }
 
 // GetKeptnEndpointFromService returns the loadbalancer service IP from Keptn Installation
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func GetKeptnEndpointFromService(useInClusterConfig bool, namespace string, serviceName string) (string, error) {
 	var keptnService *typesv1.Service
 	clientset, err := GetClientset(useInClusterConfig)
@@ -380,6 +410,8 @@ func GetKeptnEndpointFromService(useInClusterConfig bool, namespace string, serv
 }
 
 // GetKeptnAPITokenFromSecret returns the `keptn-api-token` data secret from Keptn Installation
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func GetKeptnAPITokenFromSecret(useInClusterConfig bool, namespace string, secretName string) (string, error) {
 	var keptnSecret *typesv1.Secret
 	clientset, err := GetClientset(useInClusterConfig)
@@ -397,6 +429,8 @@ func GetKeptnAPITokenFromSecret(useInClusterConfig bool, namespace string, secre
 }
 
 // ExecuteCommand exectues the command using the args
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func ExecuteCommand(command string, args []string) (string, error) {
 	cmd := exec.Command(command, args...)
 	out, err := cmd.CombinedOutput()
@@ -407,6 +441,8 @@ func ExecuteCommand(command string, args []string) (string, error) {
 }
 
 // ExecuteCommandInDirectory executes the command using the args within the specified directory
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func ExecuteCommandInDirectory(command string, args []string, directory string) (string, error) {
 	cmd := exec.Command(command, args...)
 	cmd.Dir = directory
@@ -423,6 +459,8 @@ func getHelmChartURI(chartName string) string {
 
 // StoreChart stores a chart in the configuration service
 //Deprecated: StoreChart is deprecated, use chartStorer.Store instead
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func StoreChart(project string, service string, stage string, chartName string, helmChart []byte, configServiceURL string) (string, error) {
 
 	cs := chartStorer{
@@ -430,17 +468,19 @@ func StoreChart(project string, service string, stage string, chartName string, 
 	}
 
 	opts := StoreChartOptions{
-		Project:   project,
-		Service:   service,
-		Stage:     stage,
-		ChartName: chartName,
-		HelmChart: helmChart,
+		Project:	project,
+		Service:	service,
+		Stage:		stage,
+		ChartName:	chartName,
+		HelmChart:	helmChart,
 	}
 	return cs.Store(opts)
 
 }
 
 // GetChart returns the chart and the related git commit ID from the configuration service
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func GetChart(project string, service string, stage string, chartName string, configServiceURL string) (*chart.Chart, string, error) {
 	resourceHandler := utils.NewResourceHandler(configServiceURL)
 	resourceScope := utils.NewResourceScope().Project(project).Stage(stage).Service(service).Resource(getHelmChartURI(chartName))
@@ -460,23 +500,31 @@ func GetChart(project string, service string, stage string, chartName string, co
 }
 
 // LoadChart converts a byte array into a Chart
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func LoadChart(data []byte) (*chart.Chart, error) {
 	return loader.LoadArchive(bytes.NewReader(data))
 }
 
 // LoadChartFromPath loads a directory or Helm chart into a Chart
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func LoadChartFromPath(path string) (*chart.Chart, error) {
 	return loader.Load(path)
 }
 
 // PackageChart packages the chart and returns it
 //Deprecated: PackageChart is deprecated, use chartPackager.Package instead
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func PackageChart(ch *chart.Chart) ([]byte, error) {
 	cp := chartPackager{}
 	return cp.Package(ch)
 }
 
 // GetRenderedDeployments returns all deployments contained in the provided chart
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func GetRenderedDeployments(ch *chart.Chart) ([]*appsv1.Deployment, error) {
 
 	renderedTemplates, err := renderTemplatesWithKeptnValues(ch)
@@ -509,6 +557,8 @@ func GetRenderedDeployments(ch *chart.Chart) ([]*appsv1.Deployment, error) {
 }
 
 // GetRenderedServices returns all services contained in the provided chart
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func GetRenderedServices(ch *chart.Chart) ([]*typesv1.Service, error) {
 
 	renderedTemplates, err := renderTemplatesWithKeptnValues(ch)
@@ -542,10 +592,10 @@ func GetRenderedServices(ch *chart.Chart) ([]*typesv1.Service, error) {
 func renderTemplatesWithKeptnValues(ch *chart.Chart) (map[string]string, error) {
 	keptnValues := map[string]interface{}{
 		"keptn": map[string]interface{}{
-			"project":    "prj",
-			"stage":      "stage",
-			"service":    "svc",
-			"deployment": "dpl",
+			"project":	"prj",
+			"stage":	"stage",
+			"service":	"svc",
+			"deployment":	"dpl",
 		},
 	}
 
@@ -566,11 +616,15 @@ func renderTemplatesWithKeptnValues(ch *chart.Chart) (map[string]string, error) 
 }
 
 // IsService tests whether the provided struct is a service
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func IsService(svc *typesv1.Service) bool {
 	return strings.ToLower(svc.Kind) == "service"
 }
 
 // IsDeployment tests whether the provided struct is a deployment
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func IsDeployment(dpl *appsv1.Deployment) bool {
 	return strings.ToLower(dpl.Kind) == "deployment"
 }
@@ -582,14 +636,16 @@ type chartStorer struct {
 
 //StoreChartOptions are the parameters for storing a chart
 type StoreChartOptions struct {
-	Project   string
-	Service   string
-	Stage     string
-	ChartName string
-	HelmChart []byte
+	Project		string
+	Service		string
+	Stage		string
+	ChartName	string
+	HelmChart	[]byte
 }
 
 //NewChartStorer creates a new chartStorer instance
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func NewChartStorer(resourceHandler *goutils.ResourceHandler) *chartStorer {
 	return &chartStorer{
 		resourceHandler: resourceHandler,
@@ -597,6 +653,8 @@ func NewChartStorer(resourceHandler *goutils.ResourceHandler) *chartStorer {
 }
 
 //Store stores a chart in the configuration service
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func (cs chartStorer) Store(storeChartOpts StoreChartOptions) (string, error) {
 
 	uri := getHelmChartURI(storeChartOpts.ChartName)
@@ -617,14 +675,16 @@ type chartRetriever struct {
 
 //RetrieveChartOptions are the parameters to obtain a chart
 type RetrieveChartOptions struct {
-	Project   string
-	Service   string
-	Stage     string
-	ChartName string
-	CommitID  string
+	Project		string
+	Service		string
+	Stage		string
+	ChartName	string
+	CommitID	string
 }
 
 //NewChartRetriever creates a new chartRetriever instance
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func NewChartRetriever(resourceHandler *goutils.ResourceHandler) *chartRetriever {
 	return &chartRetriever{
 		resourceHandler: resourceHandler,
@@ -665,11 +725,15 @@ type chartPackager struct {
 }
 
 //NewChartPackager creates a new chartPackager instance
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func NewChartPackager() *chartPackager {
 	return &chartPackager{}
 }
 
 //packages a helm chart into its byte representation
+//
+// Deprecated: Please use github.com/keptn/go-utils/pkg/common and github.com/keptn/keptn/helm-service
 func (pc chartPackager) Package(ch *chart.Chart) ([]byte, error) {
 	helmPackage, err := ioutil.TempDir("", "")
 	if err != nil {
